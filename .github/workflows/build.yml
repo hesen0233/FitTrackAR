@@ -1,0 +1,29 @@
+name: Build APK
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: ZIP-i aç
+        run: unzip -o FitTrackAR.zip -d .
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Pose model faylını yüklə
+        run: |
+          mkdir -p FitTrackAR/app/src/main/assets
+          curl -L -o FitTrackAR/app/src/main/assets/pose_landmarker_lite.task "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task"
+      - name: Gradle icazəsi
+        run: chmod +x FitTrackAR/gradlew
+      - name: APK build et
+        working-directory: FitTrackAR
+        run: ./gradlew assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FitTrackAR-debug-apk
+          path: FitTrackAR/app/build/outputs/apk/debug/app-debug.apk
